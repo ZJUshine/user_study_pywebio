@@ -3,7 +3,7 @@ FilePath: questionnaire_pywebio.py
 Author: zjushine
 Date: 2023-04-09 17:55:18
 LastEditors: zjushine
-LastEditTime: 2023-04-11 15:47:28
+LastEditTime: 2023-04-11 16:23:10
 Description: 用pywebio实现一个语音助手的用户调查
 Copyright (c) 2023 by ${zjushine}, All Rights Reserved. 
 '''
@@ -47,16 +47,14 @@ def check01(number):
 def survey():
     put_markdown("# User Study")
     put_text("感谢您参加本次调查，请回答以下问题：")
-    network_delay = select("请输入确定", options=["确定", "取消"])
     info = session_info
     print(info)
     user_id = id(info['user_agent'])
     print(hex(user_id))
-    clear()
     shebei = input("填写你的智能音箱或语音助手",type = TEXT,help_text="例如siri、小爱同学、小度、小米AI音箱等")
     delay_time = input("请问您在使用智能音箱或语音助手时，感觉延迟多久？", type=NUMBER, help_text="请填写数字，单位为秒",validate = check)
     network_delay = select("请问您在使用智能音箱或语音助手时，通常网络卡顿的时候是几秒？", options=["1秒以内", "3秒以内", "5秒以内", "5-10秒"])
-    
+    clear()
     normal = []
     delay_times = []
     for ask,answer in commands.items():
