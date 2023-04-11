@@ -3,7 +3,7 @@ FilePath: questionnaire_pywebio.py
 Author: zjushine
 Date: 2023-04-09 17:55:18
 LastEditors: zjushine
-LastEditTime: 2023-04-11 15:07:20
+LastEditTime: 2023-04-11 15:47:28
 Description: 用pywebio实现一个语音助手的用户调查
 Copyright (c) 2023 by ${zjushine}, All Rights Reserved. 
 '''
@@ -18,7 +18,8 @@ import random
 import numpy as np
 import soundfile as sf
 import os
-from flask import request
+from pywebio.session import info as session_info
+import json
 # 语音助手的命令和回答
 commands = {
     "What's the weather like today": "The weather today is partly cloudy with a high of 72 degrees Fahrenheit and a low of 60 degrees Fahrenheit",
@@ -46,8 +47,11 @@ def check01(number):
 def survey():
     put_markdown("# User Study")
     put_text("感谢您参加本次调查，请回答以下问题：")
-    forwarded_ips = request.headers.getlist("X-Forwarded-For")
-    ip = forwarded_ips[0] if forwarded_ips else None
+    network_delay = select("请输入确定", options=["确定", "取消"])
+    info = session_info
+    print(info)
+    user_id = id(info['user_agent'])
+    print(hex(user_id))
     clear()
     shebei = input("填写你的智能音箱或语音助手",type = TEXT,help_text="例如siri、小爱同学、小度、小米AI音箱等")
     delay_time = input("请问您在使用智能音箱或语音助手时，感觉延迟多久？", type=NUMBER, help_text="请填写数字，单位为秒",validate = check)
@@ -63,9 +67,9 @@ def survey():
         silence = np.zeros(silence_length, dtype=np.float32)
         result = np.concatenate([audio1, silence, audio2])
         # 保存音频文件
-        sf.write(f"output{ip}.mp3", result, sr1)
+        sf.write(f"output{user_id}.mp3", result, sr1)
 
-        with open(f'output{ip}.mp3', 'rb') as f:
+        with open(f'output{user_id}.mp3', 'rb') as f:
             audio_data = f.read()
         # 展示音频
         put_markdown("以下是一些真实场景，请你考虑是否正常")
@@ -83,18 +87,18 @@ def survey():
         df = pd.read_csv("questionnaire_result.csv",header=None)
     else:
         # 创建一个表格存储信息
-        df = pd.DataFrame(columns=["学号", "型号","延迟时间","网络卡顿",\
+        df = pd.DataFrame(columns=["user_id", "型号","延迟时间","网络卡顿",\
             "no0","delay_time0","no1","delay_time1","no2","delay_time2","no3","delay_time3",\
             "no4","delay_time4","no5","delay_time5","no6","delay_time6","no7","delay_time7"\
             ,"no8","delay_time8","no9","delay_time9"])
     # 将信息存入表格的最后一行
-    df.loc[len(df.index)] = [ip,shebei,delay_time,network_delay,\
+    df.loc[len(df.index)] = [user_id,shebei,delay_time,network_delay,\
         normal[0],delay_times[0],normal[1],delay_times[1],normal[2],delay_times[2],\
         normal[3],delay_times[3],normal[4],delay_times[4],normal[5],delay_times[5],\
         normal[6],delay_times[6],normal[7],delay_times[7],normal[8],delay_times[8],\
         normal[9],delay_times[9]]
     df.to_csv('questionnaire_result.csv',index=False)
-    os.remove(f'output{ip}.mp3')
+    os.remove(f'output{user_id}.mp3')
     # 显示感谢信息
     put_markdown("# 感谢您的参与！")
     put_text("以下是奖励，请您扫码领取")
